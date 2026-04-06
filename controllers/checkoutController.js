@@ -62,7 +62,8 @@ export async function beginCheckout(req, res) {
     });
 
     // Create Stripe Checkout Session
-    const origin = process.env.FRONTEND_URL || req.headers.origin || 'http://localhost:5173';
+    const envFrontendUrls = (process.env.FRONTEND_URL || '').split(',');
+    const origin = envFrontendUrls[0] || req.headers.origin || 'http://localhost:5173';
     
     // Convert items for Stripe
     const line_items = snapshotItems.map(item => ({
