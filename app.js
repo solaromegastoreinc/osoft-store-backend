@@ -61,6 +61,10 @@ app.use(cors({
 //   allowedHeaders: ['Content-Type', 'Authorization']
 // }));
 
+// Stripe Webhook MUST be placed BEFORE express.json() because it needs the raw body
+import { stripeWebhook } from './controllers/checkoutController.js';
+app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
+
 app.use(express.json());
 
 
