@@ -52,7 +52,7 @@ export async function beginCheckout(req, res) {
         provider: "demo", // later swap to 'stripe' or similar
         sessionId: paymentSessionId || crypto.randomUUID(),
         amount: totalAmount,
-        currency: "LKR",
+        currency: "USD",
       },
       items: snapshotItems,
     });

@@ -360,7 +360,7 @@ export function trackViewContent(product, params = {}) {
             content_name: product.name,
             content_category: product.category,
             value: parseFloat(product.price) || 0,
-            currency: product.currency || 'LKR',
+            currency: product.currency || 'USD',
         },
         ...params,
     });
@@ -380,7 +380,7 @@ export function trackAddToCart(product, quantity = 1, params = {}) {
             content_ids: [product.id],
             content_name: product.name,
             value: parseFloat(product.price) * quantity || 0,
-            currency: product.currency || 'LKR',
+            currency: product.currency || 'USD',
             contents: [{
                 id: product.id,
                 quantity,
@@ -412,7 +412,7 @@ export function trackInitiateCheckout(items, totalValue, params = {}) {
             contents,
             num_items: items.length,
             value: parseFloat(totalValue) || 0,
-            currency: 'LKR',
+            currency: 'USD',
         },
         ...params,
     });
@@ -449,7 +449,7 @@ export async function trackPurchase(order, items, params = {}) {
             content_ids: contentIds,
             contents,
             value: parseFloat(order.totalAmount || order.amount) || 0,
-            currency: order.currency || 'LKR',
+            currency: order.currency || 'USD',
             order_id: order.orderId || order.id || order._id,
             num_items: items.length,
         },
