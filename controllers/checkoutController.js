@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import { deliverOrderByPaymentSession } from "./deliveryController.js";
+import { trackPurchase as trackPurchaseCAPI } from "../utils/metaCAPI.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -123,12 +124,43 @@ export async function stripeWebhook(req, res) {
     console.log(`Payment successful for session: ${session.id}`);
 
     try {
-      await deliverOrderByPaymentSession({
+      const deliveredOrder = await deliverOrderByPaymentSession({
         provider: 'stripe',
         sessionId: session.id,
         payload: { amount: session.amount_total / 100 }
       });
       console.log(`Order delivered successfully for session: ${session.id}`);
+
+      // Track Purchase event via Meta CAPI (server-side, for deduplication + server reliability)
+      if (deliveredOrder) {
+        try {
+          const capiItems = (deliveredOrder.items || []).map(item => ({
+            id: item.productId,
+            quantity: item.quantity || 1,
+            price: item.productSnapshot?.price || 0,
+          }));
+
+          await trackPurchaseCAPI(
+            {
+              orderId: String(deliveredOrder._id),
+              email: deliveredOrder.email,
+              totalAmount: deliveredOrder.payment?.amount || (session.amount_total / 100),
+              currency: deliveredOrder.payment?.currency || 'USD',
+            },
+            capiItems,
+            {
+              eventSourceUrl: session.success_url || null,
+              userData: {
+                email: deliveredOrder.email,
+                external_id: deliveredOrder.userId ? String(deliveredOrder.userId) : undefined,
+              },
+            }
+          );
+          console.log(`[Meta CAPI] Purchase event tracked for order: ${deliveredOrder._id}`);
+        } catch (capiError) {
+          console.error(`[Meta CAPI] Failed to track Purchase event:`, capiError);
+        }
+      }
     } catch (deliveryError) {
       console.error(`Delivery failed for session ${session.id}:`, deliveryError);
       // We still return 200 to Stripe so it doesn't retry, or we return 500 if we want retry?

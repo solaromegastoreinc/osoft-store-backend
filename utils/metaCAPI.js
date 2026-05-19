@@ -143,6 +143,11 @@ export function normalizeUserData(userData = {}) {
         normalized.fbp = userData.fbp;
     }
 
+    // Facebook Login ID (fb_login_id) - NOT hashed, sent as-is
+    if (userData.fb_login_id) {
+        normalized.fb_login_id = userData.fb_login_id;
+    }
+
     // Client IP address
     if (userData.client_ip_address) {
         normalized.client_ip_address = userData.client_ip_address;
